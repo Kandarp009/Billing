@@ -1,196 +1,154 @@
 # Billing
-#include <stdio.h>
-#include <windows.h>
 
-void printmenu(){
-    char ch='*';
-    printf("%c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c  %c",ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch);
-    printf("\n%c\t\t\t IMPRESSO EXPRESSO\t\t\t       %c\n",ch,ch);
-    printf("%c\t\t\t\t\t\t\t\t       %c\n%c  COFFEE  \t\t\t\t\tSNACKS\t\t       %c",ch,ch,ch,ch);
-    printf("\n%c  1->Americano @200/-\t\t\t\t6->French Fries @300/- %c",ch,ch);
-    printf("\n%c  2->Espresso @150/-\t\t\t\t7->Spicy Nachos @270/- %c",ch,ch);
-    printf("\n%c  3->Latte @ 130/-\t\t\t\t8->Pasta @230/-        %c",ch,ch);
-    printf("\n%c  4->Hot Chocolate @250/-\t\t\t9->Noodles @360/-      %c",ch,ch);
-    printf("\n%c  5->Cappuccino @100/-\t\t\t\t10>Sandwich @220/-     %c",ch,ch);
-    printf("\n%c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c  %c",ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch,ch);
+
+#include <stdio.h>
+#include <stdlib.h> // For system("pause")
+#include <unistd.h> // For usleep() function
+
+#define MENU_SIZE 5 // Number of items in the menu
+#define SGST_RATE 9 // SGST rate in percentage
+#define CGST_RATE 9 // CGST rate in percentage
+
+// Structure to represent an item in the menu
+struct MenuItem {
+    char name[50];
+    int price;
+};
+
+// Function to print the menu
+void printMenu(const struct MenuItem menu[]) {
+    printf("\n\033[1;32mWelcome to Veronica's Cafe!\033[0m\n");
+    printf("--------- Menu ---------\n");
+    for (int i = 0; i < MENU_SIZE; i++) {
+        printf("%d. %s - $%d\n", i + 1, menu[i].name, menu[i].price);
+    }
+    printf("------------------------\n");
 }
 
+// Function to take orders and calculate the bill
+int takeOrder(const struct MenuItem menu[], int orderedItems[], int quantities[]) {
+    int totalBill = 0;
+    int choice, quantity;
+    char option;
 
-int order(){
-    char item[20],ans;
-    int quantity[20];
-    printf("\nHELLO!!! I AM HERE TO TAKE YOUR ORDER:)");
-    printf("\nWhat would you like to have?:");
-    scanf("%s",&item[0]);
-    printf("How much quantity?");
-    scanf("%d",&quantity[0]);
-    for(int i=1;i<=20;i++){
-        printf("Do you need something else?(y/n)");
-        scanf("%c",&ans);
-        if(ans=='y'){
-            printf("What item?");
-            scanf("%s",&item[i]);
-            printf("How much quantity?");
-            scanf("%d",&quantity[i]);
+    printf("\nEnter the item number and quantity (e.g., 1 2 for first item with quantity 2):\n");
+
+    while (1) {
+        printf("Item: ");
+        scanf("%d", &choice);
+        if (choice < 1 || choice > MENU_SIZE) {
+            printf("Invalid item number. Please enter a valid item number.\n");
+            continue;
         }
-        else if(ans=='n'){
+        choice--; // Adjusting choice for array indexing
+
+        printf("Quantity: ");
+        scanf("%d", &quantity);
+        if (quantity <= 0) {
+            printf("Invalid quantity. Please enter a quantity greater than zero.\n");
+            continue;
+        }
+
+        orderedItems[choice] = 1; // Mark the item as ordered
+        quantities[choice] = quantity; // Store the quantity ordered
+
+        totalBill += menu[choice].price * quantity;
+
+        printf("Do you want to order anything else? (y/n): ");
+        scanf(" %c", &option);
+        if (option == 'n' || option == 'N') {
             break;
         }
     }
-    return 0;
+
+    return totalBill;
 }
 
+// Function to display a rectangular colorful loading bar with percentage
+void displayLoadingBar() {
+    printf("\nProcessing your order...\n\n\n\n\n");
 
+    int width = 25; // Width of the loading bar
+    int sleepTime = 100000; // Sleep time in microseconds (100000 microseconds = 0.1 second)
+    int color = 32; // ANSI color code (green)
 
-void loadingbar(){
-    //O - BLACK BACKGROUND
-    //A - GREEN BACKGROUND
-
-    system("color 0A");
-
-    //Initialize char for printing
-    //loading bar
-    char a=177,b=219;
-    printf("\n\n\n\n");
-    printf("\n\n\n\n\t\t\t\t\tLoading...\n\n");
-    printf("\t\t\t\t\t");
-
-    //Print initial loading bar
-    for (int i=0;i<26;i++){
-        printf("%c",a);
+    for (int i = 0; i <= width; i++) {
+        printf("\033[1;%dm", color); // Set color for the current block
+        printf("[");
+        for (int j = 0; j < i; j++) {
+            printf(":");
+        }
+        for (int j = i; j < width; j++) {
+            printf(" ");
+        }
+        printf("] %d%%", (i * 100) / width); // Print percentage
+        printf("\r");
+        fflush(stdout);
+        usleep(sleepTime); // Sleep for sleepTime microseconds
     }
 
-    //set the cursor again to starting
-    //point of loading bar
-    printf("\r");
-    printf("\t\t\t\t\t");
-
-    //Print loading bar progress
-    for (int i=0;i<26;i++){
-        printf("%c",b);
-
-        //Sleep for 1 second
-        Sleep(1000);
-
-    }
+    printf("\033[0m\n\n\n\n\n"); // Reset color after loading bar
 }
 
-/*BILL STRUCTURE:
-        ~~~~~~~~~~~~~[IMPRESSO EXPRESSO]~~~~~~~~~~~~~~~
-        Add: 123, Sindhu bahavan road, Ahmedabad-3800xx 
-        Web: impexp.com
-        Contact: 98754850xx
-        Email: info@impexp.com
-        ----------------------------------------------
-                        *INVOICE*
-        (+) BASE AMOUNT: {}
-        (+) CGST: {} 
-        (+) SGST: {}
-
-        [*] FINAL AMOUNT: RS. {} /- ONLY
-        ----------------------------------------------
-                THANKS FOR VISITING!!
-        COPYRIGHT (C) IMPRESSO EXPRESSO 20xx. 
-        ALL RIGHTS RESERVED
-        ----------------------------------------------
-                GSTIN: 8897606704593xx
-*/
-
-
-int generatebill(){
-    int n,q;
-    printf("\n\n\n\nEnter the number of item:");
-    scanf("%d",&n);
-    printf("Quantity:");
-    scanf("%d",&q);
-    int BA,cgst,sgst,FA;
-    switch (n){
-        case 1:
-        BA=200;
-        cgst=(BA/100)*9;
-        sgst=(BA/100)*9;
-        FA=BA+cgst+sgst;
-        break;
-
-        case 2: BA=150;
-        cgst=(BA/100)*9;
-        sgst=(BA/100)*9;
-        FA=BA+cgst+sgst;
-        break;
-
-        case 3: BA=130;
-        cgst=(BA/100)*9;
-        sgst=(BA/100)*9;
-        FA=BA+cgst+sgst;
-        break;
-
-        case 4: BA=250;
-        cgst=(BA/100)*9;
-        sgst=(BA/100)*9;
-        FA=BA+cgst+sgst;
-        break;
-
-        case 5: BA=100;
-        cgst=(BA/100)*9;
-        sgst=(BA/100)*9;
-        FA=BA+cgst+sgst;
-        break;
-
-        case 6: BA=300;
-        cgst=(BA/100)*9;
-        sgst=(BA/100)*9;
-        FA=BA+cgst+sgst;
-        break;
-
-        case 7: BA=270;
-        cgst=(BA/100)*9;
-        sgst=(BA/100)*9;
-        FA=BA+cgst+sgst;
-        break;
-
-        case 8: BA=230;
-        cgst=(BA/100)*9;
-        sgst=(BA/100)*9;
-        FA=BA+cgst+sgst;
-        break;
-
-        case 9: BA=360;
-        cgst=(BA/100)*9;
-        sgst=(BA/100)*9;
-        FA=BA+cgst+sgst;
-        break;
-
-        case 10: BA=220;
-        cgst=(BA/100)*9;
-        sgst=(BA/100)*9;
-        FA=BA+cgst+sgst;
-        break;
-    }
-    printf("\n~~~~~~~~~~~~~~~~~~~[IMPRESSO EXPRESSO]~~~~~~~~~~~~~~~~~~~~");
-    printf("\nAdd: 123, Sindhu bahavan road, Ahmedabad-3800xx");
-    printf("\nWeb: impexp.com");
-    printf("\nContact: 98754850xx");
-    printf("\nEmail: info@impexp.com");
-    printf("\n----------------------------------------------------------");
-    printf("\n\t\t*INVOICE*");
-    printf("\n(+)BASE AMOUNT: Rs.%d",BA);
-    printf("\n(+)CGST: Rs.%d",cgst);
-    printf("\n(+)SGST: Rs.%d",sgst);
-    printf("\n\n[*]Final Amount: Rs.%d/- only",FA*q);
-    printf("\n----------------------------------------------------------");
-    printf("\n\t\tTHANKS FOR VISITING!!!");
-    printf("\nCOPYRIGHT (C) IMPRESSO EXPRESSO 20xx.");
-    printf("\nALL RIGHTS RESERVED");
-    printf("\n----------------------------------------------------------");
-    printf("\nGSTIN: 8897606704593xx");
-    return 0;
+// Function to calculate SGST
+int calculateSGST(int totalBill) {
+    return (totalBill * SGST_RATE) / 100;
 }
 
+// Function to calculate CGST
+int calculateCGST(int totalBill) {
+    return (totalBill * CGST_RATE) / 100;
+}
 
-int main(){
-    printmenu();
-    order();
-    loadingbar();
-    generatebill();
+// Function to generate invoice
+void generateInvoice(const struct MenuItem menu[], const int orderedItems[], const int quantities[], int totalBill) {
+    printf("\nVeronica's Cafe\n123, Cafe Street, Mumbai-9xx001");
+    printf("\nEmail: info@veroscafe.com");
+    printf("\nGSTIN: 95876015056493xx\n");
+    printf("\n\033[1;33m--------------- INVOICE ---------------\033[0m\n");
+    printf("Item Purchased\t\tQuantity\tPrice\n");
+    for (int i = 0; i < MENU_SIZE; i++) {
+        if (orderedItems[i]) {
+            printf("%s\t\t%d\t\t$%d\n", menu[i].name, quantities[i], menu[i].price * quantities[i]);
+        }
+    }
+    printf("\033[1;33m----------------------------------------\033[0m\n");
+    printf("\033[1;33mSubtotal\t\t\t\t$%d\033[0m\n", totalBill);
+    int sgst = calculateSGST(totalBill);
+    printf("\033[1;33mSGST (%d%%)\t\t\t\t$%d\033[0m\n", SGST_RATE, sgst);
+    int cgst = calculateCGST(totalBill);
+    printf("\033[1;33mCGST (%d%%)\t\t\t\t$%d\033[0m\n", CGST_RATE, cgst);
+    printf("\033[1;33m----------------------------------------\033[0m\n");
+    printf("\033[1;33mTotal Bill\t\t\t\t$%d\033[0m\n", totalBill + sgst + cgst);
+    printf("\033[1;33m----------------------------------------\033[0m\n");
+}
+
+int main() {
+    // Define menu items
+    struct MenuItem menu[MENU_SIZE] = {
+        {"Americano", 200},
+        {"Espresso", 150},
+        {"Latte", 130},
+        {"Cappuccino", 100},
+        {"Hot Chocolate", 250}
+    };
+
+    // Array to track ordered items and their quantities
+    int orderedItems[MENU_SIZE] = {0}; // Initialize all to 0 (not ordered)
+    int quantities[MENU_SIZE] = {0}; // Initialize all to 0 (quantity)
+
+    printMenu(menu);
+    int totalBill = takeOrder(menu, orderedItems, quantities);
+
+    displayLoadingBar(); // Display loading bar after taking the order
+
+    generateInvoice(menu, orderedItems, quantities, totalBill); // Generate invoice
+
+    printf("\nThank you for visiting Veronica's Cafe!");
+    printf("\nCOPYRIGHT (C) Veronica's Cafe 1998.");
+    printf("\nALL RIGHTS RESERVED\n\n");
+
+    // Pause before closing console window (for Windows)
+    system("pause");
     return 0;
 }
